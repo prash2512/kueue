@@ -58,8 +58,8 @@ echo "Installing kueue-populator with Topology, ResourceFlavor and ClusterQueue.
   --namespace kueue-system \
   --create-namespace \
   --set kueue.enabled=true  \
-  --set image.tag="$GIT_TAG" \
-  --set image.pullPolicy=IfNotPresent \
+  --set kueuePopulator.image.tag="$GIT_TAG" \
+  --set kueuePopulator.image.pullPolicy=IfNotPresent \
   --set kueuePopulator.config.topology.levels[0].nodeLabel="cloud.google.com/gke-nodepool" \
   --set kueuePopulator.config.resourceFlavor.nodeLabels."cloud\.google\.com/gke-nodepool"="default-pool" \
   --set kueuePopulator.config.clusterQueue.name="cluster-queue" \
