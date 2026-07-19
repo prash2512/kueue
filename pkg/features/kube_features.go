@@ -46,6 +46,10 @@ const (
 	// Enables Kueue visibility on demand
 	VisibilityOnDemand featuregate.Feature = "VisibilityOnDemand"
 
+	// Allows disabling WaitForPodsReady during the migration period.
+	//
+	// Deprecated: planned to be removed in 0.21. Temporary option while WaitForPodsReady is enabled by default.
+	DisableWaitForPodsReady featuregate.Feature = "DisableWaitForPodsReady"
 	// owner: @yaroslava-serdiuk
 	// kep: https://github.com/kubernetes-sigs/kueue/issues/1283
 	//
@@ -72,12 +76,6 @@ const (
 	//
 	// Enables MultiKueue support.
 	MultiKueue featuregate.Feature = "MultiKueue"
-
-	// owner: @trasc
-	// kep: https://github.com/kubernetes-sigs/kueue/tree/main/keps/693-multikueue
-	//
-	// Enable the usage of batch.Job spec.managedBy field its MultiKueue integration.
-	MultiKueueBatchJobWithManagedBy featuregate.Feature = "MultiKueueBatchJobWithManagedBy"
 
 	// owner: @mimowo
 	//
@@ -485,6 +483,13 @@ const (
 	// TODO(#12820): temporary workaround in the RayService integration. Remove once
 	// the generic FinishOrphanedWorkloads owner-deletion check lands.
 	DeferRayServiceFinalizationForRedisCleanup featuregate.Feature = "DeferRayServiceFinalizationForRedisCleanup"
+
+	// owner: @j-skiba
+	//
+	// Enable caching node matching results (NodeSelector, Tolerations, Affinity) per workload/PodSet
+	// to be reused within a single scheduling cycle by TAS evaluations corresponding to different
+	// sets of preemption candidates.
+	TASCacheNodeMatchResults featuregate.Feature = "TASCacheNodeMatchResults"
 )
 
 func init() {
@@ -509,6 +514,9 @@ var defaultVersionedFeatureGates = map[featuregate.Feature]featuregate.Versioned
 		{Version: version.MustParse("0.6"), Default: false, PreRelease: featuregate.Alpha},
 		{Version: version.MustParse("0.9"), Default: true, PreRelease: featuregate.Beta},
 	},
+	DisableWaitForPodsReady: {
+		{Version: version.MustParse("0.19"), Default: false, PreRelease: featuregate.Alpha},
+	},
 	PrioritySortingWithinCohort: {
 		{Version: version.MustParse("0.6"), Default: true, PreRelease: featuregate.Beta},
 	},
@@ -521,11 +529,6 @@ var defaultVersionedFeatureGates = map[featuregate.Feature]featuregate.Versioned
 	MultiKueue: {
 		{Version: version.MustParse("0.6"), Default: false, PreRelease: featuregate.Alpha},
 		{Version: version.MustParse("0.9"), Default: true, PreRelease: featuregate.Beta},
-	},
-	MultiKueueBatchJobWithManagedBy: {
-		{Version: version.MustParse("0.8"), Default: false, PreRelease: featuregate.Alpha},
-		{Version: version.MustParse("0.15"), Default: true, PreRelease: featuregate.Beta},
-		{Version: version.MustParse("0.17"), Default: true, PreRelease: featuregate.GA, LockToDefault: true}, // remove in 0.19
 	},
 	TopologyAwareScheduling: {
 		{Version: version.MustParse("0.9"), Default: false, PreRelease: featuregate.Alpha},
@@ -591,6 +594,7 @@ var defaultVersionedFeatureGates = map[featuregate.Feature]featuregate.Versioned
 	},
 	KueueDRAIntegrationExtendedResource: {
 		{Version: version.MustParse("0.18"), Default: false, PreRelease: featuregate.Alpha},
+		{Version: version.MustParse("0.19"), Default: true, PreRelease: featuregate.Beta},
 	},
 
 	KueueDRARejectWorkloadsWhenDRADisabled: {
@@ -705,6 +709,7 @@ var defaultVersionedFeatureGates = map[featuregate.Feature]featuregate.Versioned
 	},
 	QuotaCheckStrategy: {
 		{Version: version.MustParse("0.18"), Default: false, PreRelease: featuregate.Alpha},
+		{Version: version.MustParse("0.19"), Default: true, PreRelease: featuregate.Beta},
 	},
 	MetricForWorkloadCreationLatency: {
 		{Version: version.MustParse("0.18"), Default: true, PreRelease: featuregate.Beta}, // GA in 0.21
@@ -743,6 +748,10 @@ var defaultVersionedFeatureGates = map[featuregate.Feature]featuregate.Versioned
 	},
 
 	DeferRayServiceFinalizationForRedisCleanup: {
+		{Version: version.MustParse("0.19"), Default: true, PreRelease: featuregate.Beta},
+	},
+
+	TASCacheNodeMatchResults: {
 		{Version: version.MustParse("0.19"), Default: true, PreRelease: featuregate.Beta},
 	},
 }

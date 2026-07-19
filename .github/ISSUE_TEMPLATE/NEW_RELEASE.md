@@ -14,11 +14,7 @@ Please do not remove items from the checklist
   At least two for minor or major releases. At least one for a patch release.
 - [ ] Verify that the changelog in this issue and the CHANGELOG folder is up-to-date
   - [ ] Use `/sync-release-notes` to generate and publish the release notes
-- [ ] For major or minor releases (v$MAJ.$MIN.0), create a new release branch.
-  - [ ] An OWNER creates a vanilla release branch with
-        `git branch release-$MAJ.$MIN main`
-  - [ ] An OWNER pushes the new release branch with
-        `git push upstream release-$MAJ.$MIN`
+- [ ] For major or minor releases (`v$MAJ.$MIN.0`), use the `/create-release-branch` ChatOps command to create a new release branch.
 - [ ] Update the release branch:
   - [ ] Ensure there are no unstaged changes in your directory (the script adds everything)
   - [ ] Run `./hack/releasing/prepare_pull.sh --target release $VERSION`
@@ -27,14 +23,12 @@ Please do not remove items from the checklist
   - Extract the changelog from the issue description.
   - Create the release tag at the tip of the release branch.
   - Push the tag upstream (triggers Prow to build and publish staging container image: `us-central1-docker.pkg.dev/k8s-staging-images/kueue/kueue:$VERSION`).
-- [ ] An OWNER [prepares a draft release](https://github.com/kubernetes-sigs/kueue/releases)
-  - [ ] Create the draft release pointing out to the created tag.
-  - [ ] Write the change log into the draft release.
-  - [ ] Run
-      `make release-artifacts IMAGE_REGISTRY=registry.k8s.io/kueue GIT_TAG=$VERSION`
-      to generate the artifacts in the `release-artifacts` folder.
-  - [ ] Upload the files in the `release-artifacts` folder to the draft release - either
-      via UI or `gh release --repo kubernetes-sigs/kueue upload $VERSION release-artifacts/*`.
+- [ ] Run ChatOps command `/create-draft-release` on this issue. This will:
+  - Extract the changelog from the issue description.
+  - Create the draft release pointing out to the created tag.
+  - Write the change log into the draft release.
+  - Generate the artifacts in the `release-artifacts` folder.
+  - Upload the files in the `release-artifacts` folder to the draft release.
 - [ ] Promote images and Helm Charts to production:
   - [ ] Use `/wait-for-images` to await for the staging images.
   - [ ] Run `./hack/releasing/promote_pull.sh $VERSION` to submit the promotion PR
