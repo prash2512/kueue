@@ -47,7 +47,7 @@ tests:
           pattern: "qps: 123"
       - notMatchRegex:
           path: data["controller_manager_config.yaml"]
-          pattern: "burst:|qps: 600"
+          pattern: "burst:|groupKindConcurrency:|qps: 600"
 
   - it: should give explicitly empty YAML precedence over structured overrides
     set:
@@ -59,7 +59,45 @@ tests:
           pattern: "internalCertManagement:"
       - notMatchRegex:
           path: data["controller_manager_config.yaml"]
-          pattern: "apiVersion:|clientConnection:|integrations:"
+          pattern: "apiVersion:|kind:|clientConnection:|integrations:"
+
+  - it: should preserve empty legacy configuration without selecting structured defaults
+    template: manager/manager-config.yaml
+    set:
+      managerConfig.controllerManagerConfigYaml: ""
+    asserts:
+      - matchRegex:
+          path: data["controller_manager_config.yaml"]
+          pattern: "internalCertManagement:"
+      - notMatchRegex:
+          path: data["controller_manager_config.yaml"]
+          pattern: "apiVersion:|kind:|burst:|qps:"
+
+  - it: should render an empty legacy YAML object without adding configuration defaults
+    template: manager/manager-config.yaml
+    set:
+      managerConfig.controllerManagerConfigYaml: "{}"
+      managerConfig.structuredOverrides.clientConnection.qps: 600
+    asserts:
+      - matchRegex:
+          path: data["controller_manager_config.yaml"]
+          pattern: "internalCertManagement:"
+      - notMatchRegex:
+          path: data["controller_manager_config.yaml"]
+          pattern: "apiVersion:|kind:|clientConnection:|integrations:|leaderElection:|controller:"
+
+  - it: should preserve legacy parse errors instead of falling back to structured overrides
+    template: manager/manager-config.yaml
+    set:
+      managerConfig.controllerManagerConfigYaml: "not: [valid YAML"
+      managerConfig.structuredOverrides.clientConnection.qps: 600
+    asserts:
+      - matchRegex:
+          path: data["controller_manager_config.yaml"]
+          pattern: "Error:"
+      - notMatchRegex:
+          path: data["controller_manager_config.yaml"]
+          pattern: "clientConnection:|qps: 600"
 
   - it: should reject an unknown mode
     set:
@@ -88,6 +126,38 @@ tests:
     set:
       managerConfig.controllerManagerConfigYaml: 123
       managerConfig.structuredOverrides.clientConnection.qps: 600
+    asserts:
+      - failedTemplate:
+          errorPattern: "(?s)controllerManagerConfigYaml.*string"
+
+  - it: should reject a non-map structured config
+    template: webhook/manifests.yaml
+    set:
+      managerConfig.structuredOverrides: invalid
+    asserts:
+      - failedTemplate:
+          errorPattern: "(?s)managerConfig[/.]structuredOverrides.*(object|map)"
+
+  - it: should reject a null structured input
+    template: webhook/manifests.yaml
+    set:
+      managerConfig.structuredOverrides: null
+    asserts:
+      - failedTemplate:
+          errorPattern: "(?s)managerConfig[/.]structuredOverrides.*(object|map)"
+
+  - it: should reject a non-string legacy input
+    template: webhook/manifests.yaml
+    set:
+      managerConfig.controllerManagerConfigYaml: {}
+    asserts:
+      - failedTemplate:
+          errorPattern: "(?s)controllerManagerConfigYaml.*string"
+
+  - it: should reject a null legacy input
+    template: webhook/manifests.yaml
+    set:
+      managerConfig.controllerManagerConfigYaml: null
     asserts:
       - failedTemplate:
           errorPattern: "(?s)controllerManagerConfigYaml.*string"
